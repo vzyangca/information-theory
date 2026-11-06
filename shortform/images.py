@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .common import ROOT
 
 LW, LH = 1080, 1920  # logical canvas; everything is drawn in these units
-VISUALS = ("telegraph", "wave", "bits", "channel", "formula", "timeline", "follow")
+VISUALS = ("telegraph", "wave", "bits", "channel", "formula", "timeline", "portrait", "follow")
 GRADIENTS = [
     ((70, 120, 200), (16, 28, 78)),
     ((60, 150, 190), (14, 40, 84)),
@@ -298,6 +298,56 @@ def art_formula(c, cx=540, cy=980):
         _fit_text(c, cx, cy + 150, note, 50, 860, fill=INK)
 
 
+def _person_layer(person: dict, d: int, k: float) -> Image.Image:
+    """Square image of side d (supersampled px): the person's own photo if provided, else a stylized silhouette."""
+    ref = person.get("photo")
+    if ref:
+        path = Path(ref) if Path(ref).is_absolute() else ROOT / "assets" / ref
+        if path.exists():
+            from PIL import ImageOps
+
+            return ImageOps.fit(ImageOps.exif_transpose(Image.open(path)).convert("RGB"), (d, d), Image.LANCZOS,
+                                centering=(0.5, 0.3))
+        print(f"images: portrait photo not found at {path}; using the stylized portrait")
+    layer = Image.new("RGB", (d, d))
+    top, bottom = (84, 118, 196), (22, 36, 88)
+    layer.paste(Image.composite(Image.new("RGB", (d, d), bottom), Image.new("RGB", (d, d), top),
+                                Image.linear_gradient("L").resize((d, d))))
+    g = ImageDraw.Draw(layer)
+    ink = (14, 22, 58)
+    g.ellipse((d * 0.33, d * 0.20, d * 0.67, d * 0.58), fill=ink)  # head
+    g.ellipse((d * 0.12, d * 0.62, d * 0.88, d * 1.50), fill=ink)  # shoulders
+    return layer
+
+
+def art_portrait(c, cx=540, cy=860):
+    """One large portrait (scene `person`) or up to three small ones (scene `people`), each a dict with
+    name, name_zh, role, role_zh, tag and an optional `photo` file in assets/."""
+    zh = c.lang == "zh"
+    people = c.scene.get("people") or ([c.scene["person"]] if c.scene.get("person") else [{}])
+    n = min(len(people), 3)
+    r = {1: 300, 2: 215, 3: 150}[n]
+    xs = {1: [cx], 2: [cx - 245, cx + 245], 3: [cx - 345, cx, cx + 345]}[n]
+    for x, person in zip(xs, people[:n]):
+        d = round(2 * r * c.k)
+        layer = _person_layer(person, d, c.k)
+        mask = Image.new("L", (d, d), 0)
+        ImageDraw.Draw(mask).ellipse((0, 0, d - 1, d - 1), fill=255)
+        c.img.paste(layer, (round((x - r) * c.k), round((cy - r) * c.k)), mask)
+        c.ell((x - r - 14, cy - r - 14, x + r + 14, cy + r + 14), None, outline=GOLD, w=12)
+        name = person.get("name_zh" if zh else "name", "")
+        role = person.get("role_zh" if zh else "role", "")
+        tag = person.get("tag", "")
+        if n == 1:
+            if role:
+                _fit_text(c, x, cy + r + 90, role, 52, 900, fill=INK)
+        else:
+            short = name.split("\u00b7")[-1] if zh else name.split()[-1] if name else ""
+            c.text((x, cy + r + 70), short, 50, fill=INK, shadow=False)
+            if tag:
+                c.text((x, cy + r + 130), tag, 40, fill=GOLD, shadow=False)
+
+
 def art_timeline(c, cx=540, cy=980):
     years = c.scene.get("years") or ["1924", "1928", "1948"]
     n = len(years)
@@ -314,7 +364,7 @@ def art_timeline(c, cx=540, cy=980):
 ART = {
     "follow": art_follow,
     "telegraph": art_telegraph, "wave": art_wave, "bits": art_bits, "channel": art_channel,
-    "formula": art_formula, "timeline": art_timeline,
+    "formula": art_formula, "timeline": art_timeline, "portrait": art_portrait,
 }
 
 

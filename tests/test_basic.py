@@ -436,3 +436,29 @@ def test_series_badge_and_sources_flow_to_manifest():
     cfg["language"] = "zh"
     m = build_manifest(topic, localize(topic, "zh"), Path("v.mp4"), cfg)
     assert "信号简史" in m["title"] and "资料来源" in m["description"] and "信息论" in m["tags"]
+
+
+def test_portrait_scenes_render_single_group_and_photo(tmp_path, monkeypatch):
+    from PIL import Image
+    from shortform import images
+    from shortform.images import illustrated_image
+
+    one = {"visual": "portrait", "caption": "A", "narration": "b", "person": {"name": "Ada Lovelace", "role": "Mathematician"}}
+    trio = {"visual": "portrait", "caption": "A", "narration": "b",
+            "people": [{"name": "A B", "tag": "1"}, {"name": "C D"}, {"name": "E F"}]}
+    for i, sc in enumerate((one, trio, {"visual": "portrait", "caption": "A", "narration": "b"})):
+        assert Image.open(illustrated_image(sc, i, (270, 480), tmp_path / f"p{i}.png")).size == (270, 480)
+    monkeypatch.setattr(images, "ROOT", tmp_path)
+    (tmp_path / "assets").mkdir()
+    Image.new("RGB", (400, 300), (200, 30, 30)).save(tmp_path / "assets" / "me.jpg")
+    withphoto = dict(one, person={"name": "X", "photo": "me.jpg"})
+    out = illustrated_image(withphoto, 0, (270, 480), tmp_path / "ph.png")
+    assert Image.open(out).getpixel((135, 200))[0] > 150  # the photo shows through the medallion
+
+
+def test_every_topic_names_people_in_portrait_scenes():
+    for slug, topic in load_topics().items():
+        for s in topic["scenes"]:
+            if s["visual"] == "portrait":
+                people = s.get("people") or [s.get("person")]
+                assert all(p and p.get("name") and p.get("name_zh") for p in people), (slug, s["caption"])

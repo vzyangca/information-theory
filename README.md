@@ -25,6 +25,12 @@ python3 -m shortform.pipeline run --topic bit-story --lang zh
 Output lands in `output/<topic>/` (`output/<topic>-zh/` for Mandarin): `script.json`, `images/`, `voice/`,
 `video.mp4`, and `publish.json` (the upload manifest, including the sources list).
 
+## Portraits
+
+Scenes with `visual: portrait` show a person (`person:`) or up to three (`people:`) with `name`, `name_zh`, `role`, `tag`.
+By default they are stylized silhouette medallions, not likenesses. To use a real picture, save a public-domain or
+licensed image in `assets/` and add `photo: shannon.jpg` to that person; keep its attribution in the topic's `sources:`.
+
 ## Topics
 
 `topics/information_theory.yaml`, English and Mandarin: `bit-story`, `nyquist-limit`, `hartley-measure`,
