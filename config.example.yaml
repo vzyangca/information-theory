@@ -1,0 +1,29 @@
+channel_name: Wuhan Bites
+language: en                # en | zh (or run with --lang zh)
+channel_name_zh: 武汉一口
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  seconds_per_scene: 4
+script:
+  provider: template        # template | anthropic
+  model: claude-sonnet-5-5
+voice:
+  provider: auto            # auto | edge-tts | macos-say | silent
+  voice_name: en-US-AriaNeural   # edge-tts voice
+  say_voice: Samantha            # macOS `say` voice (see: say -v '?')
+  rate: "+0%"                    # speaking speed for edge-tts, e.g. "+10%" faster, "-10%" slower
+  voice_name_zh: zh-CN-XiaoxiaoNeural   # Mandarin edge-tts voice (male: zh-CN-YunxiNeural)
+  say_voice_zh: Tingting         # macOS Mandarin voice; may need downloading in System Settings
+images:
+  provider: auto            # auto (Google photos if GEMINI_API_KEY is set, else illustrations) | google | illustrated | placeholder
+  google_model: auto        # auto = pick an image model your key can use; or name one (see: python3 -m wuhanbites.image_providers)
+publish:
+  dry_run: true
+  platforms: [youtube_shorts]   # tiktok, instagram_reels: no uploader yet
+  youtube:
+    privacy: private        # private | unlisted | public (start private!)
+    category_id: "19"       # 19 Travel & Events, 26 Howto & Style
+    client_secret: secrets/client_secret.json
+    token: secrets/youtube_token.json
