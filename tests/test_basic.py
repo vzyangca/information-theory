@@ -1,14 +1,14 @@
-from wuhanbites.common import load_config, load_topics
-from wuhanbites.finance import add_entry, summarize
-from wuhanbites.script_gen import template_script
+from shortform.common import load_config, load_topics
+from shortform.finance import add_entry, summarize
+from shortform.script_gen import template_script
 
 
 def test_topics_load():
-    assert "re-gan-mian" in load_topics()
+    assert "bit-story" in load_topics()
 
 
 def test_template_script_shape():
-    topic = load_topics()["doupi"]
+    topic = load_topics()["shannon-1948"]
     script = template_script(topic, load_config()["channel_name"])
     assert script["scenes"][0]["narration"] == topic["hook"]
     assert script["scenes"][-1]["narration"] == topic["call_to_action"]
@@ -22,9 +22,9 @@ def test_finance(tmp_path):
 
 
 def test_youtube_body_defaults_private_and_shorts_tag():
-    from wuhanbites.youtube import build_body
+    from shortform.youtube import build_body
 
-    manifest = {"title": "Re Gan Mian | Wuhan Bites", "description": "Tasty.", "tags": ["wuhan"],
+    manifest = {"title": "Who Invented the Bit? | Signal Stories", "description": "Short.", "tags": ["informationtheory"],
                 "ai_generated_disclosure": True}
     body = build_body(manifest, load_config())
     assert body["status"]["privacyStatus"] == "private"
@@ -34,7 +34,7 @@ def test_youtube_body_defaults_private_and_shorts_tag():
 
 
 def test_youtube_title_truncated():
-    from wuhanbites.youtube import build_body
+    from shortform.youtube import build_body
 
     body = build_body({"title": "x" * 300, "description": "d"}, load_config())
     assert len(body["snippet"]["title"]) <= 100 and body["snippet"]["title"].endswith("#Shorts")
@@ -42,14 +42,14 @@ def test_youtube_title_truncated():
 
 def test_youtube_rejects_bad_privacy():
     import pytest
-    from wuhanbites.youtube import youtube_settings
+    from shortform.youtube import youtube_settings
 
     with pytest.raises(ValueError):
         youtube_settings({"publish": {"youtube": {"privacy": "everyone"}}})
 
 
 def test_every_scene_has_known_visual_and_text():
-    from wuhanbites.images import VISUALS
+    from shortform.images import VISUALS
 
     for slug, topic in load_topics().items():
         assert topic["scenes"][0]["narration"] == topic["hook"], slug
@@ -60,7 +60,7 @@ def test_every_scene_has_known_visual_and_text():
 
 def test_all_visuals_render(tmp_path):
     from PIL import Image
-    from wuhanbites.images import VISUALS, illustrated_image
+    from shortform.images import VISUALS, illustrated_image
 
     for i, v in enumerate(VISUALS):
         p = illustrated_image({"visual": v, "caption": "A Long Headline For Testing", "narration": "Some narration text."},
@@ -79,9 +79,9 @@ def test_voice_and_video_timing_follow_narration(tmp_path, monkeypatch):
 
     if not _have_ffmpeg():
         pytest.skip("ffmpeg not installed")
-    from wuhanbites import voice
-    from wuhanbites.assemble import assemble_video
-    from wuhanbites.images import generate_images
+    from shortform import voice
+    from shortform.assemble import assemble_video
+    from shortform.images import generate_images
 
     def fake_tts(text, voice_name, out):  # stand-in for edge-tts: longer text -> longer clip
         secs = 0.2 * len(text.split())
@@ -94,8 +94,8 @@ def test_voice_and_video_timing_follow_narration(tmp_path, monkeypatch):
     config["voice"]["provider"] = "edge-tts"
     config["video"].update(width=180, height=320, fps=10)
     script = {"scenes": [
-        {"narration": "one two three", "caption": "A", "visual": "bowl"},
-        {"narration": " ".join(["word"] * 30), "caption": "B", "visual": "wok"},
+        {"narration": "one two three", "caption": "A", "visual": "bits"},
+        {"narration": " ".join(["word"] * 30), "caption": "B", "visual": "wave"},
     ]}
     audio, durations = voice.generate_voice(script, config, tmp_path / "voice")
     assert durations[1] > durations[0] + 3          # long scene lasts longer
@@ -110,7 +110,7 @@ def test_voice_falls_back_to_silent_when_provider_fails(tmp_path, monkeypatch):
 
     if not _have_ffmpeg():
         pytest.skip("ffmpeg not installed")
-    from wuhanbites import voice
+    from shortform import voice
 
     def boom(*a, **k):
         raise RuntimeError("no network")
@@ -124,7 +124,7 @@ def test_voice_falls_back_to_silent_when_provider_fails(tmp_path, monkeypatch):
 
 def test_crop_9_16():
     from PIL import Image
-    from wuhanbites.image_providers import crop_9_16
+    from shortform.image_providers import crop_9_16
 
     for size in ((1024, 1536), (1536, 1024), (900, 1600)):
         w, h = crop_9_16(Image.new("RGB", size)).size
@@ -134,7 +134,7 @@ def test_crop_9_16():
 def test_providers_parse_responses(monkeypatch):
     import base64, io
     from PIL import Image
-    from wuhanbites import image_providers as ip
+    from shortform import image_providers as ip
 
     buf = io.BytesIO()
     Image.new("RGB", (1024, 1536), "red").save(buf, "PNG")
@@ -152,7 +152,7 @@ def test_providers_parse_responses(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "g")
     monkeypatch.setenv("OPENAI_API_KEY", "o")
     for provider in ("google", "openai"):
-        w, h = ip.generate(provider, "a bowl").size
+        w, h = ip.generate(provider, "a diagram").size
         assert abs(w / h - 9 / 16) < 0.01
     google_body = next(b for u, (b, _) in seen.items() if "googleapis" in u)
     assert google_body["parameters"]["aspectRatio"] == "9:16"
@@ -160,7 +160,7 @@ def test_providers_parse_responses(monkeypatch):
 
 def test_missing_key_message(monkeypatch):
     import pytest
-    from wuhanbites import image_providers as ip
+    from shortform import image_providers as ip
 
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
@@ -170,10 +170,10 @@ def test_missing_key_message(monkeypatch):
 
 def test_photo_scene_has_overlay_and_correct_size(tmp_path):
     from PIL import Image
-    from wuhanbites.images import photo_image
+    from shortform.images import photo_image
 
     photo = Image.new("RGB", (1024, 1536), (200, 120, 60))
-    scene = {"caption": "Hot Dry Noodles", "narration": "If you only eat one breakfast in Wuhan, make it this."}
+    scene = {"caption": "Who Invented the Bit?", "narration": "Every message you send is made of bits."}
     p = photo_image(scene, photo, (270, 480), tmp_path / "p.png")
     img = Image.open(p)
     assert img.size == (270, 480)
@@ -182,7 +182,7 @@ def test_photo_scene_has_overlay_and_correct_size(tmp_path):
 
 def test_photo_provider_caches_and_falls_back(tmp_path, monkeypatch):
     from PIL import Image
-    from wuhanbites import image_providers, images
+    from shortform import image_providers, images
 
     calls = []
 
@@ -191,11 +191,11 @@ def test_photo_provider_caches_and_falls_back(tmp_path, monkeypatch):
         return Image.new("RGB", (576, 1024), "orange")
 
     monkeypatch.setattr(image_providers, "generate", fake_generate)
-    monkeypatch.setattr("wuhanbites.common.ROOT", tmp_path)
+    monkeypatch.setattr("shortform.common.ROOT", tmp_path)
     monkeypatch.setenv("GEMINI_API_KEY", "x")
     config = load_config()
     config["video"].update(width=180, height=320)
-    scene = {"caption": "A", "narration": "b", "visual": "bowl", "image_prompt": "a bowl of noodles"}
+    scene = {"caption": "A", "narration": "b", "visual": "bits", "image_prompt": "a diagram of a channel"}
     images.generate_image(scene, 0, config, tmp_path / "a.png")
     images.generate_image(scene, 1, config, tmp_path / "b.png")
     assert len(calls) == 1  # second run served from cache
@@ -210,7 +210,7 @@ def test_photo_provider_caches_and_falls_back(tmp_path, monkeypatch):
 
 
 def test_auto_without_key_uses_illustrations(tmp_path, monkeypatch):
-    from wuhanbites import images
+    from shortform import images
 
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
@@ -227,19 +227,19 @@ def test_mandarin_text_present_for_every_scene():
 
 
 def test_localize_zh_and_en():
-    from wuhanbites.script_gen import template_script
+    from shortform.script_gen import template_script
 
-    topic = load_topics()["doupi"]
-    zh = template_script(topic, "武汉一口", "zh")
+    topic = load_topics()["shannon-1948"]
+    zh = template_script(topic, "信号简史", "zh")
     assert zh["scenes"][0]["narration"] == topic["scenes"][0]["narration_zh"]
     assert all(s["lang"] == "zh" for s in zh["scenes"])
-    en = template_script(topic, "Wuhan Bites", "en")
+    en = template_script(topic, "Signal Stories", "en")
     assert en["scenes"][0]["narration"] == topic["hook"]
 
 
 def test_chinese_wrap_has_no_leading_punctuation_and_fits(tmp_path):
     from PIL import Image
-    from wuhanbites.images import NO_LINE_START, Canvas, illustrated_image
+    from shortform.images import NO_LINE_START, Canvas, illustrated_image
 
     c = Canvas((540, 960), ((255, 255, 255), (0, 0, 0)))
     text = "面条先煮熟，拌上油晾凉，点单的时候再放进热水里烫一下。"
@@ -247,36 +247,36 @@ def test_chinese_wrap_has_no_leading_punctuation_and_fits(tmp_path):
     assert len(lines) >= 2 and "".join(lines) == text
     assert all(l[0] not in NO_LINE_START for l in lines)
     assert all(c.text_width(l, 54) <= 860 for l in lines)
-    p = illustrated_image({"visual": "follow", "caption": "武汉一口", "narration": text, "lang": "zh"},
-                          0, (270, 480), tmp_path / "zh.png", "武汉一口")
+    p = illustrated_image({"visual": "follow", "caption": "信号简史", "narration": text, "lang": "zh"},
+                          0, (270, 480), tmp_path / "zh.png", "信号简史")
     assert Image.open(p).size == (270, 480)
 
 
 def test_speech_seconds_for_chinese():
-    from wuhanbites.voice import speech_seconds
+    from shortform.voice import speech_seconds
 
     assert 3 < speech_seconds("面条先煮熟，拌上油晾凉，点单的时候再放进热水里烫一下。") < 9
     assert speech_seconds("one two three") < 2
 
 
 def test_zh_manifest_and_youtube_language():
-    from wuhanbites.publish import build_manifest
-    from wuhanbites.script_gen import template_script
-    from wuhanbites.youtube import build_body
+    from shortform.publish import build_manifest
+    from shortform.script_gen import template_script
+    from shortform.youtube import build_body
 
     config = load_config()
     config["language"] = "zh"
-    topic = load_topics()["re-gan-mian"]
-    script = template_script(topic, "武汉一口", "zh")
+    topic = load_topics()["bit-story"]
+    script = template_script(topic, "信号简史", "zh")
     m = build_manifest(topic, script, "v.mp4", config)
-    assert m["language"] == "zh-CN" and m["title"].startswith("热干面")
+    assert m["language"] == "zh-CN" and m["title"].startswith("谁发明了比特")
     body = build_body(m, config)
     assert body["snippet"]["defaultAudioLanguage"] == "zh-CN"
 
 
 def test_photo_fit_modes(tmp_path):
     from PIL import Image
-    from wuhanbites.images import photo_image
+    from shortform.images import photo_image
 
     wide = Image.new("RGB", (400, 300), (30, 160, 60))  # landscape photo
     scene = {"caption": "A", "narration": "b"}
@@ -288,7 +288,7 @@ def test_photo_fit_modes(tmp_path):
 
 def test_scene_uses_local_photo_and_falls_back_when_missing(tmp_path, monkeypatch):
     from PIL import Image
-    from wuhanbites import images
+    from shortform import images
 
     (tmp_path / "assets").mkdir()
     Image.new("RGB", (300, 340), (20, 200, 40)).save(tmp_path / "assets" / "mine.jpg")
@@ -297,7 +297,7 @@ def test_scene_uses_local_photo_and_falls_back_when_missing(tmp_path, monkeypatc
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     config = load_config()
     config["video"].update(width=180, height=320)
-    scene = {"caption": "A", "narration": "b", "visual": "bowl", "photo": "mine.jpg"}
+    scene = {"caption": "A", "narration": "b", "visual": "bits", "photo": "mine.jpg"}
     out = images.generate_image(scene, 0, config, tmp_path / "a.png")
     assert Image.open(out).convert("RGB").getpixel((90, 160))[1] > 150   # green photo in the middle
     missing = dict(scene, photo="nope.jpg")
@@ -307,7 +307,7 @@ def test_scene_uses_local_photo_and_falls_back_when_missing(tmp_path, monkeypatc
 
 def test_google_http_error_is_readable_and_stops_retries(tmp_path, monkeypatch, capsys):
     import io, json, urllib.error
-    from wuhanbites import image_providers, images
+    from shortform import image_providers, images
 
     body = json.dumps({"error": {"code": 400, "status": "FAILED_PRECONDITION",
                                  "message": "Imagen API is only accessible to billed users at this time."}}).encode()
@@ -316,11 +316,11 @@ def test_google_http_error_is_readable_and_stops_retries(tmp_path, monkeypatch, 
         raise urllib.error.HTTPError("u", 400, "Bad Request", {}, io.BytesIO(body))
 
     monkeypatch.setattr(image_providers.urllib.request, "urlopen", fake_urlopen)
-    monkeypatch.setattr("wuhanbites.common.ROOT", tmp_path)
+    monkeypatch.setattr("shortform.common.ROOT", tmp_path)
     monkeypatch.setenv("GEMINI_API_KEY", "x")
     config = load_config()
     config["video"].update(width=180, height=320)
-    script = {"scenes": [{"caption": "A", "narration": "b", "visual": "bowl", "image_prompt": f"p{i}"} for i in range(3)]}
+    script = {"scenes": [{"caption": "A", "narration": "b", "visual": "bits", "image_prompt": f"p{i}"} for i in range(3)]}
     outs = images.generate_images(script, config, tmp_path / "o")
     text = capsys.readouterr().out
     assert len(outs) == 3 and all(o.exists() for o in outs)  # video still builds with illustrations
@@ -331,7 +331,7 @@ def test_google_http_error_is_readable_and_stops_retries(tmp_path, monkeypatch, 
 def test_google_model_auto_pick_and_gemini_image_path(monkeypatch):
     import base64, io
     from PIL import Image
-    from wuhanbites import image_providers as ip
+    from shortform import image_providers as ip
 
     models = {"models": [
         {"name": "models/gemini-2.5-pro", "supportedGenerationMethods": ["generateContent"]},
@@ -353,14 +353,14 @@ def test_google_model_auto_pick_and_gemini_image_path(monkeypatch):
 
     monkeypatch.setattr(ip, "_post", fake_post)
     monkeypatch.setenv("GEMINI_API_KEY", "k")
-    w, h = ip.generate("google", "a bowl").size
+    w, h = ip.generate("google", "a diagram").size
     assert abs(w / h - 9 / 16) < 0.01 and seen["url"].endswith("gemini-2.5-flash-image:generateContent")
     assert seen["body"]["generationConfig"]["responseModalities"] == ["IMAGE"]
 
 
 def test_gemini_no_image_is_an_error(monkeypatch):
     import pytest
-    from wuhanbites import image_providers as ip
+    from shortform import image_providers as ip
 
     monkeypatch.setattr(ip, "_post", lambda *a, **k: {"promptFeedback": {"blockReason": "SAFETY"}})
     with pytest.raises(RuntimeError, match="SAFETY"):
@@ -379,13 +379,13 @@ def test_tts_override_and_rate_reach_the_voice(tmp_path, monkeypatch):
     import pytest
     if not shutil.which("ffmpeg"):
         pytest.skip("ffmpeg not installed")
-    from wuhanbites import voice
-    from wuhanbites.script_gen import localize
+    from shortform import voice
+    from shortform.script_gen import localize
 
     topic = {"slug": "t", "title": "T", "scenes": [
-        {"visual": "bowl", "caption": "c", "narration": "n", "caption_zh": "热干面", "narration_zh": "热干面好吃", "tts_zh": "re4 gan1 mian4 hao3 chi1"}]}
+        {"visual": "bits", "caption": "c", "narration": "n", "caption_zh": "比特", "narration_zh": "比特很有用", "tts_zh": "bi3 te4 hen3 you3 yong4"}]}
     scene = localize(topic, "zh")["scenes"][0]
-    assert scene["narration"] == "热干面好吃" and scene["tts"].startswith("re4")
+    assert scene["narration"] == "比特很有用" and scene["tts"].startswith("bi3")
     seen = {}
 
     def fake(text, name, out, rate="+0%"):
@@ -398,12 +398,12 @@ def test_tts_override_and_rate_reach_the_voice(tmp_path, monkeypatch):
     config.update(language="zh")
     config["voice"].update(provider="edge-tts", rate="+10%")
     voice.generate_voice({"scenes": [scene]}, config, tmp_path / "voice")
-    assert seen == {"text": "re4 gan1 mian4 hao3 chi1", "name": "zh-CN-XiaoxiaoNeural", "rate": "+10%"}
+    assert seen == {"text": "bi3 te4 hen3 you3 yong4", "name": "zh-CN-XiaoxiaoNeural", "rate": "+10%"}
 
 
 def test_config_validation_names_the_wrong_setting(tmp_path):
     import pytest
-    from wuhanbites.common import load_config
+    from shortform.common import load_config
 
     bad = tmp_path / "config.yaml"
     bad.write_text("voice:\n  provider: illustrated\n")  # an images value on the voice line
@@ -417,16 +417,16 @@ def test_config_validation_names_the_wrong_setting(tmp_path):
 
 
 def test_version_label_matches_release_name():
-    import wuhanbites
+    import shortform
 
-    assert wuhanbites.__version__ == "wuhan-bite-v-0.1"
+    assert shortform.__version__ == "signal-stories-v-0.1"
 
 
 def test_series_badge_and_sources_flow_to_manifest():
     from pathlib import Path
-    from wuhanbites.common import load_config
-    from wuhanbites.publish import build_manifest
-    from wuhanbites.script_gen import localize
+    from shortform.common import load_config
+    from shortform.publish import build_manifest
+    from shortform.script_gen import localize
 
     topic = load_topics()["bit-story"]
     for lang in ("en", "zh"):

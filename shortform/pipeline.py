@@ -44,7 +44,7 @@ def run(slug: str, upload: bool = False, lang: str | None = None) -> None:
 def main(argv=None) -> None:
     from . import __version__
 
-    ap = argparse.ArgumentParser(prog="wuhanbites.pipeline")
+    ap = argparse.ArgumentParser(prog="shortform.pipeline")
     ap.add_argument("--version", action="version", version=__version__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("list-topics")

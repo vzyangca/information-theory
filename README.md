@@ -1,36 +1,13 @@
-# Information Theory: Signal Stories
+# Signal Stories
 
-Short-video series on the history of information theory: Nyquist (1924, 1928), Hartley (1928) and Shannon (1948).
-Built with the same offline-first pipeline as Wuhan Bites (topic, script, images, voice, ffmpeg, publish, ledger).
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp config.example.yaml config.yaml
-python3 -m wuhanbites.pipeline list-topics
-python3 -m wuhanbites.pipeline run --topic bit-story --lang en
-python3 -m wuhanbites.pipeline run --topic bit-story --lang zh
-```
-
-Topics are in `topics/information_theory.yaml` (English and Mandarin, with a `sources:` list that goes into the
-upload description): `bit-story`, `nyquist-limit`, `hartley-measure`, `shannon-1948`, `shannon-hartley`.
-Items to verify before publishing are noted at the top of that file; have a native speaker review the Mandarin.
-`topics/wuhan_street_food.yaml` is kept as a sample second series and for the tests.
-
-The rest of this README documents the shared pipeline.
-
----
-
-# Pipeline reference
-
-A small, testable pipeline for a short-video street-food channel about Wuhan, China.
+A short-video series on the history of information theory (Nyquist 1924 and 1928, Hartley 1928, Shannon 1948),
+plus the small, testable pipeline that makes it. English and Mandarin versions, vertical 9:16.
 
 ```
 topic -> script -> images -> voice -> assemble (ffmpeg) -> publish -> finance ledger
 ```
 
-Every stage works out of the box in **offline/placeholder mode** (no API keys), so you can
-run the whole pipeline end to end, then swap in real providers one stage at a time.
+Every stage works out of the box in **offline mode** (no API keys); swap in real providers one stage at a time.
 
 ## Quick start
 
@@ -40,12 +17,20 @@ pip install -r requirements.txt
 cp config.example.yaml config.yaml
 # ffmpeg must be installed and on PATH (brew install ffmpeg / apt install ffmpeg)
 
-python3 -m wuhanbites.pipeline list-topics
-python3 -m wuhanbites.pipeline run --topic re-gan-mian
+python3 -m shortform.pipeline list-topics
+python3 -m shortform.pipeline run --topic bit-story --lang en
+python3 -m shortform.pipeline run --topic bit-story --lang zh
 ```
 
-Output lands in `output/<topic>/`: `script.json`, `images/`, `voice.wav`,
-`video.mp4`, and `publish.json` (the upload manifest).
+Output lands in `output/<topic>/` (`output/<topic>-zh/` for Mandarin): `script.json`, `images/`, `voice/`,
+`video.mp4`, and `publish.json` (the upload manifest, including the sources list).
+
+## Topics
+
+`topics/information_theory.yaml`, English and Mandarin: `bit-story`, `nyquist-limit`, `hartley-measure`,
+`shannon-1948`, `shannon-hartley`. Each topic has `scenes` (`visual`, `caption`, `narration`, `*_zh`),
+optional `series` / `palette` / `tags`, and a `sources:` list that is added to the upload description.
+Items still to verify are noted at the top of the file. Add a series by adding another `topics/*.yaml`.
 
 ## Stages
 
@@ -63,43 +48,42 @@ Output lands in `output/<topic>/`: `script.json`, `images/`, `voice.wav`,
 - `voice.provider: auto` tries `edge-tts` first (free, needs internet), then the macOS `say` voice (offline), then a silent track. The console prints which one was used.
 - Pick a different voice with `voice.voice_name` (edge-tts, e.g. `en-US-GuyNeural`) or `voice.say_voice` (macOS, list with `say -v '?'`).
 - If you copied `config.example.yaml` earlier, copy it again (or set `voice.provider: auto` and `images.provider: illustrated`) to pick up the new defaults.
-- Scenes live in `topics/*.yaml`: `narration`, `caption` and `visual` (`skyline lanterns bowl pocket ring pot lotus wok follow`). Add a topic by copying one.
-- Image sources: the built-in scenes are original illustrations; Google scenes are AI-generated pictures, not real photos of the dish; your own photos in `assets/` are yours. Disclose AI-generated content as the platform requires (the uploader already sends YouTube's flag), and only use photos you own or are licensed to use.
+- Scenes live in `topics/*.yaml`: `narration`, `caption` and `visual` (`telegraph wave bits channel formula timeline follow`; `formula` and `years` fields feed the formula and timeline visuals). Add a topic by copying one.
+- Image sources: the built-in scenes are original illustrations; Google scenes are AI-generated pictures, not archival photographs; your own photos in `assets/` are yours. Disclose AI-generated content as the platform requires (the uploader already sends YouTube's flag), and only use photos you own or are licensed to use.
 
 ## Using your own photos
 
 Put a picture in `assets/` (git-ignored, so it stays on your computer) and point a scene at it in `topics/*.yaml`:
 
 ```yaml
-- {visual: bowl, photo: tomato-egg-noodles.jpg, fit: contain, caption: "...", narration: "..."}
+- {visual: bits, photo: shannon.jpg, fit: contain, caption: "...", narration: "..."}
 ```
 
 `fit: contain` shows the whole photo on a blurred background (best for small or landscape photos); `fit: cover` crops it to 9:16.
-If the file is missing, the scene falls back to a generated or illustrated image. The `tomato-egg-noodles` topic is an example:
-copy your photo to `assets/tomato-egg-noodles.jpg` and run `python3 -m wuhanbites.pipeline run --topic tomato-egg-noodles`.
-Only use photos you own or have permission to use.
+If the file is missing, the scene falls back to a generated or illustrated image.
+Only use images you own, that are public domain, or that you are licensed to use, and keep their attribution in the topic's `sources:`.
 
 ## Mandarin version
 
 ```bash
-python3 -m wuhanbites.pipeline run --topic re-gan-mian --lang zh
+python3 -m shortform.pipeline run --topic bit-story --lang zh
 ```
 
 - Uses the `narration_zh` / `caption_zh` / `title_zh` fields in `topics/*.yaml`, a Mandarin voice (`voice.voice_name_zh`, default `zh-CN-XiaoxiaoNeural`; male: `zh-CN-YunxiNeural`; macOS fallback `Tingting`) and Chinese subtitles (drawn with Noto Sans CJK, Hiragino Sans GB or PingFang).
 - The upload gets a Chinese title, description and tags, and YouTube's language set to `zh-CN`.
 - Set `language: zh` in `config.yaml` to make it the default.
-- Have a native speaker review the Chinese text before publishing. There is no Wuhan-dialect voice; the voice speaks standard Mandarin.
+- Have a native speaker review the Chinese text before publishing.
 - If the macOS voice is missing, download "Tingting" in System Settings -> Accessibility -> Spoken Content -> System Voice -> Manage Voices.
 
 ### Choosing and tuning the Mandarin voice
 
 ```bash
-python3 -m wuhanbites.voice audition
+python3 -m shortform.voice audition
 open output/voice_samples
 ```
 
 This makes a short sample in each of five Mandarin voices so you can pick one by ear. Set your choice in `config.yaml` as `voice.voice_name_zh`
-(for example `zh-CN-YunxiNeural`). `python3 -m wuhanbites.voice list` shows every Chinese voice. Set `voice.rate` (for example `"+10%"`) to speak faster.
+(for example `zh-CN-YunxiNeural`). `python3 -m shortform.voice list` shows every Chinese voice. Set `voice.rate` (for example `"+10%"`) to speak faster.
 If a word is mispronounced, add a `tts_zh` field to that scene in `topics/*.yaml` with a respelled version for the voice to read; the on-screen text stays unchanged.
 
 ## Photo scenes with Google
@@ -108,7 +92,7 @@ Set a key and run as usual; every scene's `image_prompt` in `topics/*.yaml` beco
 
 ```bash
 export GEMINI_API_KEY=your_key
-python3 -m wuhanbites.pipeline run --topic re-gan-mian
+python3 -m shortform.pipeline run --topic bit-story
 ```
 
 - Get the key from Google AI Studio. Imagen may require billing to be enabled on the Google account; if every scene fails with HTTP 400, the error message printed in the console says why.
@@ -116,31 +100,16 @@ python3 -m wuhanbites.pipeline run --topic re-gan-mian
   Use `google` to require photos, `illustrated` to never call the API.
 - A scene whose photo fails (quota, network, bad key) falls back to its illustration and prints a warning.
 - Photos are cached in `cache/images/` (git-ignored), so re-running a topic costs nothing; edit an `image_prompt` to get a new image.
-- `images.google_model: auto` asks Google which image model your key can use (Imagen, else a Gemini image model). See the list with `python3 -m wuhanbites.image_providers`, or set a model name yourself.
+- `images.google_model: auto` asks Google which image model your key can use (Imagen, else a Gemini image model). See the list with `python3 -m shortform.image_providers`, or set a model name yourself.
 - Text (headline, subtitle) is drawn by this code, not by the image model.
-- AI-generated photos are not real photos of the dish. Disclose this to the platform (the uploader already sends the flag) and do not present them as documentary footage.
-
-## Comparing image providers
-
-Photo-style scenes need a text-to-image API key (not included). To compare providers side by side:
-
-```bash
-export GEMINI_API_KEY=...
-export OPENAI_API_KEY=...
-python3 -m wuhanbites.compare_images
-open output/compare/sheet.png
-```
-
-It makes the same 3 scenes with each provider that has a key (costs a few cents per image).
-Model names are options: `--google-model <name>` (default `auto`), `--openai-model gpt-image-1-mini`.
-Keys are read from the environment only; never put them in `config.yaml` or commit them.
+- AI-generated pictures are not archival photographs. Disclose this to the platform (the uploader already sends the flag) and do not present them as documentary footage.
 
 ## Finance ledger
 
 ```bash
-python3 -m wuhanbites.finance add --kind cost --amount 4.50 --note "image credits"
-python3 -m wuhanbites.finance add --kind income --amount 12.00 --note "creator fund" --platform tiktok
-python3 -m wuhanbites.finance summary
+python3 -m shortform.finance add --kind cost --amount 4.50 --note "image credits"
+python3 -m shortform.finance add --kind income --amount 12.00 --note "creator fund" --platform tiktok
+python3 -m shortform.finance summary
 ```
 
 Data is stored in `data/ledger.csv` on your computer. The `data/` folder is git-ignored, so your numbers are not pushed to GitHub.
@@ -159,13 +128,13 @@ One-time setup:
 
 ```bash
 pip install -r requirements-youtube.txt
-python3 -m wuhanbites.pipeline auth-youtube
+python3 -m shortform.pipeline auth-youtube
 ```
 
 Upload:
 
 ```bash
-python3 -m wuhanbites.pipeline run --topic re-gan-mian --upload
+python3 -m shortform.pipeline run --topic bit-story --upload
 ```
 
 Notes:
@@ -180,7 +149,7 @@ Notes:
 
 - When pasting commands into a Mac terminal, paste only the command lines (not any `#` comments).
 - Check each platform's policy on AI-generated content and label it as required.
-- Verify food facts in `topics/*.yaml` before publishing; the script generator only uses what is in the topic file.
+- Verify every historical claim in `topics/*.yaml` against a primary or reputable source before publishing, and list the sources in the topic's `sources:`; the script generator only uses what is in the topic file.
 - Never commit `config.yaml` or API keys (they are git-ignored).
 
 ## Tests

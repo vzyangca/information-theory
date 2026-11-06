@@ -1,6 +1,6 @@
-channel_name: Wuhan Bites
+channel_name: Signal Stories
 language: en                # en | zh (or run with --lang zh)
-channel_name_zh: 武汉一口
+channel_name_zh: 信号简史
 video:
   width: 1080
   height: 1920
@@ -18,12 +18,12 @@ voice:
   say_voice_zh: Tingting         # macOS Mandarin voice; may need downloading in System Settings
 images:
   provider: auto            # auto (Google photos if GEMINI_API_KEY is set, else illustrations) | google | illustrated | placeholder
-  google_model: auto        # auto = pick an image model your key can use; or name one (see: python3 -m wuhanbites.image_providers)
+  google_model: auto        # auto = pick an image model your key can use; or name one (see: python3 -m shortform.image_providers)
 publish:
   dry_run: true
   platforms: [youtube_shorts]   # tiktok, instagram_reels: no uploader yet
   youtube:
     privacy: private        # private | unlisted | public (start private!)
-    category_id: "19"       # 19 Travel & Events, 26 Howto & Style
+    category_id: "27"       # 27 Education, 28 Science & Technology
     client_secret: secrets/client_secret.json
     token: secrets/youtube_token.json

@@ -17,8 +17,8 @@ import urllib.request
 from PIL import Image
 
 STYLE = (
-    "Photorealistic food photography, vertical 9:16 frame, shallow depth of field, warm natural light, "
-    "authentic Wuhan, China street-food setting, appetizing, no text, no watermark, no people's faces."
+    "Vintage scientific illustration or archival-style photograph, vertical 9:16 frame, deep blue and gold palette, "
+    "clean composition, no text, no watermark, no people's faces."
 )
 DEFAULT_MODELS = {"google": "auto", "openai": "gpt-image-1"}  # "auto": ask Google which image model your key can use
 KEY_VARS = {"google": ("GEMINI_API_KEY", "GOOGLE_API_KEY"), "openai": ("OPENAI_API_KEY",)}
@@ -99,7 +99,7 @@ def pick_google_model(key: str) -> str:
     gemini.sort(key=lambda n: ("flash" not in n, "preview" in n, n))  # cheaper "flash" models first
     choice = (sorted(imagen) + gemini)[0] if (imagen or gemini) else None
     if not choice:
-        raise RuntimeError("This key lists no image models. Try: python3 -m wuhanbites.image_providers")
+        raise RuntimeError("This key lists no image models. Try: python3 -m shortform.image_providers")
     _picked["google"] = choice
     return choice
 
@@ -140,7 +140,7 @@ def generate(provider: str, prompt: str, model: str | None = None) -> Image.Imag
     return generate_google(full, model, key) if provider == "google" else generate_openai(full, model, key)
 
 
-if __name__ == "__main__":  # python3 -m wuhanbites.image_providers : show which image models your Google key can use
+if __name__ == "__main__":  # python3 -m shortform.image_providers : show which image models your Google key can use
     k = api_key("google")
     if not k:
         raise SystemExit("Set GEMINI_API_KEY first.")

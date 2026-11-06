@@ -14,7 +14,7 @@ DEFAULTS = {
     "client_secret": "secrets/client_secret.json",
     "token": "secrets/youtube_token.json",
     "privacy": "private",  # private | unlisted | public
-    "category_id": "19",
+    "category_id": "27",
 }
 VALID_PRIVACY = {"private", "unlisted", "public"}
 
@@ -74,7 +74,7 @@ def get_credentials(config: dict, allow_login: bool = False):
         creds.refresh(Request())
     else:
         if not allow_login:
-            raise SystemExit("Not logged in to YouTube. Run: python -m wuhanbites.pipeline auth-youtube")
+            raise SystemExit("Not logged in to YouTube. Run: python -m shortform.pipeline auth-youtube")
         if not secret.exists():
             raise SystemExit(f"Missing {secret}. Download the OAuth client JSON (see README) and save it there.")
         creds = InstalledAppFlow.from_client_secrets_file(str(secret), SCOPES).run_local_server(port=0)

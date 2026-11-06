@@ -112,7 +112,7 @@ MANDARIN_VOICES = ["zh-CN-XiaoxiaoNeural", "zh-CN-XiaoyiNeural", "zh-CN-YunxiNeu
 
 
 def _main() -> None:
-    """python3 -m wuhanbites.voice list | audition"""
+    """python3 -m shortform.voice list | audition"""
     import argparse
     import asyncio
 
@@ -120,7 +120,7 @@ def _main() -> None:
 
     from .common import ROOT, load_topics
 
-    ap = argparse.ArgumentParser(prog="wuhanbites.voice")
+    ap = argparse.ArgumentParser(prog="shortform.voice")
     ap.add_argument("cmd", choices=["list", "audition"], help="list: Mandarin voices; audition: sample each one")
     cmd = ap.parse_args().cmd
     if cmd == "list":

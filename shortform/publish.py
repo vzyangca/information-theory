@@ -7,7 +7,7 @@ from pathlib import Path
 def build_manifest(topic: dict, script: dict, video: Path, config: dict) -> dict:
     zh = config.get("language") == "zh"
     series = topic.get("series_zh") if zh else topic.get("series")
-    title = (f"{topic.get('title_zh', topic['title'])} | {series or config.get('channel_name_zh', '武汉一口')}" if zh
+    title = (f"{topic.get('title_zh', topic['title'])} | {series or config.get('channel_name_zh', '信号简史')}" if zh
              else f"{topic['title']} | {series or config['channel_name']}")
     description = ("" if zh else " ").join(s["narration"] for s in script["scenes"])
     sources = topic.get("sources") or []
@@ -18,8 +18,8 @@ def build_manifest(topic: dict, script: dict, video: Path, config: dict) -> dict
         "language": "zh-CN" if zh else "en",
         "title": title,
         "description": description,
-        "tags": tags or (["武汉", "武汉美食", "街头小吃", "中国美食", "shorts"] if zh
-                         else ["wuhan", "streetfood", "chinesefood", "shorts"]),
+        "tags": tags or (["信息论", "科学史", "shorts"] if zh
+                         else ["informationtheory", "historyofscience", "shorts"]),
         "video": str(video),
         "ai_generated_disclosure": True,
         "platforms": config["publish"]["platforms"],

@@ -41,7 +41,7 @@ def summarize(path: Path | None = None) -> dict:
 
 
 def main(argv=None) -> None:
-    ap = argparse.ArgumentParser(prog="wuhanbites.finance")
+    ap = argparse.ArgumentParser(prog="shortform.finance")
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("add")
     a.add_argument("--kind", required=True, choices=["income", "cost"])

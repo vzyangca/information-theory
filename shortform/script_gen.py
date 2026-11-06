@@ -47,7 +47,7 @@ def anthropic_script(topic: dict, channel: str, model: str) -> dict:
         + "\n".join(f"- {f}" for f in topic["facts"])
         + f"\nStart with this hook: {topic['hook']}\nEnd with: {topic['call_to_action']}\n"
         'Return JSON only: {"title": str, "scenes": [{"narration": str, "caption": str, "visual": one of '
-        "skyline|lanterns|bowl|pocket|ring|pot|lotus|wok|follow}]}"
+        "telegraph|wave|bits|channel|formula|timeline|follow}]}"
     )
     msg = client.messages.create(
         model=model, max_tokens=800, messages=[{"role": "user", "content": prompt}]

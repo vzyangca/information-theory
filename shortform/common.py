@@ -7,8 +7,8 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 
 DEFAULT_CONFIG = {
-    "channel_name": "Wuhan Bites",
-    "channel_name_zh": "武汉一口",
+    "channel_name": "Signal Stories",
+    "channel_name_zh": "信号简史",
     "language": "en",
     "video": {"width": 1080, "height": 1920, "fps": 30, "seconds_per_scene": 4},
     "script": {"provider": "template", "model": "claude-sonnet-5-5"},
